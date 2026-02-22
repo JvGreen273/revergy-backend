@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Revergy Smart Projects</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Heebo', sans-serif;
+      background-color: #f5f6f7;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #7fa678;
+      color: white;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 18px;
+      font-weight: 500;
+      gap: 20px;
+    }
+
+    header .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    header .header-left img {
+      height: 42px;
+    }
+
+    header .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    header .user-name {
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    header .logout-btn {
+      background-color: #466193;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: 'Heebo', sans-serif;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    header .logout-btn:hover {
+      background-color: #3a5279;
+    }
+
+    .project-selector {
+      text-align: center;
+      padding: 10px;
+      background: #ffffff;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    select {
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+
+    .main-layout {
+      display: flex;
+      height: calc(100vh - 120px);
+    }
+
+    .dashboard-big {
+      flex: 4;
+      padding: 20px;
+    }
+
+    .dashboard-big iframe {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .chat-side {
+      flex: 1;
+      min-width: 350px;
+      background: white;
+      border-left: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      padding-bottom: 30px;
+    }
+
+    .chat-logo {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .chat-logo img {
+      height: 70px;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    }
+
+    .msg {
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .user {
+      font-weight: 500;
+      color: #3c3c3b;
+    }
+
+    .bot {
+      background: #f2f4f7;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #466193;
+      display: inline-block;
+    }
+
+    .thinking {
+      opacity: 0.7;
+      font-style: italic;
+    }
+
+    .dots::after {
+      content: '';
+      animation: dots 1.5s steps(4, end) infinite;
+    }
+
+    @keyframes dots {
+      0%, 20% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    button {
+      background-color: #7fa678;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #6b9364;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-left">
+    <img src="7-revergy_horizontal.png" alt="Revergy">
+    <div>Revergy Smart Projects · Copiloto de Proyectos</div>
+  </div>
+  <div class="header-right">
+    <span id="userNameDisplay" class="user-name"></span>
+    <button onclick="logout()" class="logout-btn">Cerrar Sesión</button>
+  </div>
+</header>
+
+<div class="project-selector">
+  <select id="projectSelect">
+    <option value="puerta_de_oro">PFV Puerta de Oro</option>
+    <option value="pv_melgar">PV Melgar (DEMO)</option>
+    <option value="solar_sur">Proyecto Solar Sur (DEMO)</option>
+    <option value="eolico_este">Proyecto Eólico Este (DEMO)</option>
+  </select>
+</div>
+
+<div class="main-layout">
+
+  <!-- DASHBOARD -->
+  <div class="dashboard-big">
+    <iframe
+      id="dashboardFrame"
+      src="https://app.powerbi.com/view?r=eyJrIjoiZGIyNTkxNDEtN2ZhOS00ZWRkLTlmY2EtNjM4ZWY1NTc1MWM2IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9"
+      allowfullscreen="true">
+    </iframe>
+  </div>
+
+  <!-- CHAT LATERAL -->
+  <div class="chat-side">
+
+    <div class="chat-logo">
+      <img src="13-revergy_reducida.png" alt="Revergy Copiloto">
+    </div>
+
+    <div id="messages">
+      <div class="msg bot">👋 ¡Hola! Soy tu copiloto de proyectos de Revergy. Puedo ayudarte con información sobre el proyecto seleccionado. ¿Qué te gustaría saber?</div>
+    </div>
+
+    <div class="input-area">
+      <input id="question" type="text" placeholder="Pregunta al copiloto..." />
+      <button onclick="sendQuestion()">Enviar</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // ========== VERIFICACIÓN DE SESIÓN ==========
+  let userSession = null;
+
+  window.onload = function() {
+    // Verificar si hay sesión activa
+    const sessionData = localStorage.getItem('revergySession');
+    
+    if (!sessionData) {
+      // No hay sesión, redireccionar al login
+      window.location.href = 'login.html';
+      return;
+    }
+    
+    userSession = JSON.parse(sessionData);
+    
+    // Mostrar nombre del usuario
+    document.getElementById('userNameDisplay').textContent = `Bienvenido, ${userSession.name}`;
+    
+    // Aplicar restricciones según el rol
+    applyRoleRestrictions();
+  };
+
+  function logout() {
+    localStorage.removeItem('revergySession');
+    window.location.href = 'login.html';
+  }
+
+  function applyRoleRestrictions() {
+    const projectSelect = document.getElementById('projectSelect');
+    
+    if (userSession.role === 'user') {
+      // Usuario estándar: solo puede ver PFV Puerta de Oro
+      projectSelect.innerHTML = '<option value="puerta_de_oro">PFV Puerta de Oro</option>';
+      projectSelect.disabled = false; // Habilitado pero con una sola opción
+      
+      // Forzar carga del proyecto
+      document.getElementById('dashboardFrame').src = "https://app.powerbi.com/view?r=eyJrIjoiZGIyNTkxNDEtN2ZhOS00ZWRkLTlmY2EtNjM4ZWY1NTc1MWM2IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9";
+    }
+    // Si es admin, mantiene todos los proyectos (ya están en el HTML)
+  }
+
+  // ========== FUNCIONES DEL CHAT ==========
+  // Enviar pregunta al chat con Enter
+  document.getElementById('question').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sendQuestion();
+  });
+
+  async function sendQuestion() {
+    const input = document.getElementById('question');
+    const project = document.getElementById('projectSelect').value;
+    const question = input.value.trim();
+    if (!question) return;
+
+    const messages = document.getElementById('messages');
+    messages.innerHTML += `<div class="msg user">👤 ${question}</div>`;
+    input.value = '';
+
+    // Mensaje temporal de "procesando" con animación
+    const thinkingMsg = document.createElement('div');
+    thinkingMsg.className = 'msg bot thinking';
+    thinkingMsg.innerHTML = '🤖 Procesando<span class="dots"></span>';
+    messages.appendChild(thinkingMsg);
+    messages.scrollTop = messages.scrollHeight;
+
+    // Llamada al backend
+    const response = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: question, project: project })
+    });
+
+    const data = await response.json();
+
+    // Simular "razonamiento" - delay entre 2-4 segundos aleatorio
+    const delay = 2000 + Math.random() * 2000; // entre 2 y 4 segundos
+    await new Promise(resolve => setTimeout(resolve, delay));
+
+    // Eliminar mensaje de "procesando" y mostrar respuesta
+    thinkingMsg.remove();
+    messages.innerHTML += `<div class="msg bot">🤖 ${data.reply}</div>`;
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // Cambiar dashboard según proyecto seleccionado
+  document.getElementById('projectSelect').addEventListener('change', function() {
+    const project = this.value;
+    const iframe = document.getElementById('dashboardFrame');
+    const messages = document.getElementById('messages');
+
+    // Limpiar chat y mostrar mensaje de bienvenida
+    messages.innerHTML = '<div class="msg bot">👋 ¡Hola! Soy tu copiloto de proyectos de Revergy. Puedo ayudarte con información sobre el proyecto seleccionado. ¿Qué te gustaría saber?</div>';
+
+    if (project === "puerta_de_oro") {
+      iframe.src = "https://app.powerbi.com/view?r=eyJrIjoiZGIyNTkxNDEtN2ZhOS00ZWRkLTlmY2EtNjM4ZWY1NTc1MWM2IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9";
+
+    } else if (project === "pv_melgar") {
+      iframe.src = "https://app.powerbi.com/view?r=eyJrIjoiMGRjNjFmYWItNTNiMS00MDI1LThjMmItN2U4NzBlZjNkNjhiIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9";
+
+    } else if (project === "solar_sur") {
+      iframe.src = "data:text/html,<h2 style='text-align:center;margin-top:150px;font-family:Heebo;'>Proyecto Solar Sur (DEMO)<br>Dashboard en construcción</h2>";
+
+    } else if (project === "eolico_este") {
+      iframe.src = "data:text/html,<h2 style='text-align:center;margin-top:150px;font-family:Heebo;'>Proyecto Eólico Este (DEMO)<br>Dashboard en construcción</h2>";
+    }
+  });
+</script>
+
+</body>
+</html>
