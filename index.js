@@ -236,3 +236,5 @@ app.post('/chat', (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
   console.log(`Para recargar datos del Excel visita: http://localhost:3000/reload`);
+
+});
