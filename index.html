@@ -200,6 +200,7 @@
 <div class="project-selector">
   <select id="projectSelect">
     <option value="puerta_de_oro">PFV Puerta de Oro</option>
+    <option value="pfv_venados">PFV Venados</option>
     <option value="pv_melgar">PV Melgar (DEMO)</option>
     <option value="solar_sur">Proyecto Solar Sur (DEMO)</option>
     <option value="eolico_este">Proyecto Eólico Este (DEMO)</option>
@@ -247,7 +248,7 @@
     
     if (!sessionData) {
       // No hay sesión, redireccionar al login
-      window.location.href = 'login.html';
+      window.location.href = 'Login.html';
       return;
     }
     
@@ -262,21 +263,49 @@
 
   function logout() {
     localStorage.removeItem('revergySession');
-    window.location.href = 'login.html';
+    window.location.href = 'Login.html';
   }
 
   function applyRoleRestrictions() {
     const projectSelect = document.getElementById('projectSelect');
-    
-    if (userSession.role === 'user') {
-      // Usuario estándar: solo puede ver PFV Puerta de Oro
-      projectSelect.innerHTML = '<option value="puerta_de_oro">PFV Puerta de Oro</option>';
-      projectSelect.disabled = false; // Habilitado pero con una sola opción
-      
-      // Forzar carga del proyecto
-      document.getElementById('dashboardFrame').src = "https://app.powerbi.com/view?r=eyJrIjoiZGIyNTkxNDEtN2ZhOS00ZWRkLTlmY2EtNjM4ZWY1NTc1MWM2IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9";
+
+    // Mapa de valor → etiqueta visible
+    const etiquetas = {
+      puerta_de_oro: 'PFV Puerta de Oro',
+      pfv_venados:   'PFV Venados',
+      pv_melgar:     'PV Melgar (DEMO)',
+      solar_sur:     'Proyecto Solar Sur (DEMO)',
+      eolico_este:   'Proyecto Eólico Este (DEMO)'
+    };
+
+    if (userSession.role === 'admin') {
+      // Admin ve todos — el HTML ya los tiene, no se toca
+      return;
     }
-    // Si es admin, mantiene todos los proyectos (ya están en el HTML)
+
+    // Para cualquier otro perfil, armar el selector con sus proyectos
+    const proyectos = userSession.proyectos || ['puerta_de_oro'];
+    projectSelect.innerHTML = proyectos
+      .map(p => `<option value="${p}">${etiquetas[p] || p}</option>`)
+      .join('');
+    projectSelect.disabled = false;
+
+    // Cargar el primer dashboard de su lista
+    const primero = proyectos[0];
+    cargarDashboard(primero);
+  }
+
+  // ─── Carga el iframe según el proyecto ───
+  function cargarDashboard(project) {
+    const iframe = document.getElementById('dashboardFrame');
+    const urls = {
+      puerta_de_oro: "https://app.powerbi.com/view?r=eyJrIjoiZGIyNTkxNDEtN2ZhOS00ZWRkLTlmY2EtNjM4ZWY1NTc1MWM2IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
+      pfv_venados:   "https://app.powerbi.com/view?r=eyJrIjoiZDlhMjU0ZDgtOGY4Ny00OTc0LWJlZjEtZDQ5Mjg5NWZmNzhhIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
+      pv_melgar:     "https://app.powerbi.com/view?r=eyJrIjoiMGRjNjFmYWItNTNiMS00MDI1LThjMmItN2U4NzBlZjNkNjhiIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
+      solar_sur:     "data:text/html,<h2 style='text-align:center;margin-top:150px;font-family:Heebo;'>Proyecto Solar Sur (DEMO)<br>Dashboard en construcción</h2>",
+      eolico_este:   "data:text/html,<h2 style='text-align:center;margin-top:150px;font-family:Heebo;'>Proyecto Eólico Este (DEMO)<br>Dashboard en construcción</h2>"
+    };
+    iframe.src = urls[project] || urls['puerta_de_oro'];
   }
 
   // ========== FUNCIONES DEL CHAT ==========
@@ -324,24 +353,12 @@
   // Cambiar dashboard según proyecto seleccionado
   document.getElementById('projectSelect').addEventListener('change', function() {
     const project = this.value;
-    const iframe = document.getElementById('dashboardFrame');
     const messages = document.getElementById('messages');
 
     // Limpiar chat y mostrar mensaje de bienvenida
     messages.innerHTML = '<div class="msg bot">👋 ¡Hola! Soy tu copiloto de proyectos de Revergy. Puedo ayudarte con información sobre el proyecto seleccionado. ¿Qué te gustaría saber?</div>';
 
-    if (project === "puerta_de_oro") {
-      iframe.src = "https://app.powerbi.com/view?r=eyJrIjoiZGIyNTkxNDEtN2ZhOS00ZWRkLTlmY2EtNjM4ZWY1NTc1MWM2IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9";
-
-    } else if (project === "pv_melgar") {
-      iframe.src = "https://app.powerbi.com/view?r=eyJrIjoiMGRjNjFmYWItNTNiMS00MDI1LThjMmItN2U4NzBlZjNkNjhiIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9";
-
-    } else if (project === "solar_sur") {
-      iframe.src = "data:text/html,<h2 style='text-align:center;margin-top:150px;font-family:Heebo;'>Proyecto Solar Sur (DEMO)<br>Dashboard en construcción</h2>";
-
-    } else if (project === "eolico_este") {
-      iframe.src = "data:text/html,<h2 style='text-align:center;margin-top:150px;font-family:Heebo;'>Proyecto Eólico Este (DEMO)<br>Dashboard en construcción</h2>";
-    }
+    cargarDashboard(project);
   });
 </script>
 
