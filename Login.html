@@ -149,11 +149,13 @@
     <div id="camposCodigo" style="display:none;flex-direction:column;gap:20px;">
       <input type="text" id="nombre" class="input-field" placeholder="Nombre completo" autocomplete="off"/>
       <select id="rolSelect" class="input-field" onchange="onRolChange()" style="color:#555;">
-        <option value="user">Cliente</option>
-        <option value="admin">Gerencia</option>
+        <option value="user_revergy">Cliente Revergy</option>
+        <option value="user_enerland">Cliente Enerland</option>
+        <option value="user_celsia">Cliente Celsia</option>
+        <option value="admin">Gerencia Revergy</option>
       </select>
       <div id="codigoWrap" style="display:none;">
-        <input type="text" id="codigoAcceso" class="input-field" placeholder="Código de acceso Gerencia" autocomplete="off"/>
+        <input type="text" id="codigoAcceso" class="input-field" placeholder="Código de acceso" autocomplete="off"/>
       </div>
     </div>
 
@@ -237,7 +239,21 @@
   window.onRolChange = function() {
     const rol = document.getElementById('rolSelect').value;
     const codigoWrap = document.getElementById('codigoWrap');
-    codigoWrap.style.display = rol === 'admin' ? 'block' : 'none';
+    const codigoInput = document.getElementById('codigoAcceso');
+    // Todos los perfiles excepto Cliente Revergy requieren código
+    if (rol === 'admin') {
+      codigoWrap.style.display = 'block';
+      codigoInput.placeholder = 'Código de acceso Gerencia';
+    } else if (rol === 'user_enerland') {
+      codigoWrap.style.display = 'block';
+      codigoInput.placeholder = 'Código de acceso Enerland';
+    } else if (rol === 'user_celsia') {
+      codigoWrap.style.display = 'block';
+      codigoInput.placeholder = 'Código de acceso Celsia';
+    } else {
+      codigoWrap.style.display = 'none';
+      codigoInput.value = '';
+    }
   };
 
   // ─── SUBMIT principal ───
@@ -259,6 +275,8 @@
             localStorage.setItem('revergySession', JSON.stringify({
               username,
               role: userData.role,
+              empresa: userData.empresa || 'revergy',
+              proyectos: userData.proyectos || ['puerta_de_oro', 'pfv_venados'],
               name: userData.name,
               loginTime: new Date().toISOString()
             }));
@@ -281,13 +299,40 @@
 
       if (!nombre) return mostrarError('Ingresa tu nombre');
 
-      // Validar código si es Gerencia
-      if (rol === 'admin' && codigo !== 'Revergy+') {
-        return mostrarError('Código de Gerencia incorrecto');
+      // ─── Validar código según el perfil seleccionado ───
+      const codigos = {
+        admin:         'Revergy+',
+        user_enerland: 'Enerland2026',
+        user_celsia:   'Celsia2026'
+      };
+
+      if (codigos[rol] && codigo !== codigos[rol]) {
+        return mostrarError('Código de acceso incorrecto');
       }
 
       if (password.length < 6) {
         return mostrarError('La contraseña debe tener mínimo 6 caracteres');
+      }
+
+      // ─── Determinar empresa y proyectos según perfil ───
+      let empresa = 'revergy';
+      let proyectos = ['puerta_de_oro', 'pfv_venados', 'pv_melgar', 'solar_sur', 'eolico_este'];
+      let roleGuardado = 'user';
+
+      if (rol === 'admin') {
+        roleGuardado = 'admin';
+        empresa = 'revergy';
+        proyectos = ['todos'];
+      } else if (rol === 'user_enerland') {
+        empresa = 'enerland';
+        proyectos = ['pfv_venados'];
+      } else if (rol === 'user_celsia') {
+        empresa = 'celsia';
+        proyectos = ['solar_sur', 'eolico_este'];
+      } else {
+        // user_revergy: acceso a PDO y Venados
+        empresa = 'revergy';
+        proyectos = ['puerta_de_oro', 'pfv_venados'];
       }
 
       try {
@@ -297,14 +342,18 @@
         await set(ref(db, `usuarios/${username}`), {
           name: nombre,
           password: password,
-          role: rol,
+          role: roleGuardado,
+          empresa: empresa,
+          proyectos: proyectos,
           creadoEn: new Date().toISOString()
         });
 
         // Login automático tras registro
         localStorage.setItem('revergySession', JSON.stringify({
           username,
-          role: rol,
+          role: roleGuardado,
+          empresa: empresa,
+          proyectos: proyectos,
           name: nombre,
           loginTime: new Date().toISOString()
         }));
@@ -331,3 +380,6 @@
 </script>
 
 </body>
+</html>
+
+<!-- A mi lado, esta noche, te quiero vivirrr, RGB # 19, 23, 16, 7 -->
