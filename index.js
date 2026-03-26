@@ -31,7 +31,6 @@ function getResumenData() {
 
   console.log("📂 Leyendo Excel por primera vez...");
 
-  // ✅ Nombre del archivo actualizado
   const workbook = XLSX.readFile(path.join(__dirname, 'Resumen.xlsx'), {
     cellFormula: true,
     cellNF: true,
@@ -41,14 +40,13 @@ function getResumenData() {
 
   const sheet = workbook.Sheets['Resumen'];
 
-  // ✅ range: 2 le indica que el encabezado está en la fila 3 (índice 2)
+  // range: 2 le indica que el encabezado está en la fila 3 (índice 2)
   const data = XLSX.utils.sheet_to_json(sheet, {
     raw: true,
     defval: null,
     range: 2
   });
 
-  // DEBUG: muestra indicadores y valores (solo la primera vez)
   console.log("--- Indicadores leídos ---");
   data.forEach(row => {
     console.log(`  ${row.Indicador}: ${row.Valor} (tipo: ${typeof row.Valor})`);
@@ -66,8 +64,6 @@ function getResumenData() {
 
 /* =========================
    RUTA PARA LIMPIAR CACHÉ
-   Visita http://localhost:3000/reload
-   cuando actualices el Excel
 ========================= */
 app.get('/reload', (req, res) => {
   cacheResumen = null;
@@ -95,11 +91,20 @@ function formatCOP(value) {
   return num.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+// Formatea porcentaje con exactamente los decimales del Excel (hasta 2 decimales, sin ceros innecesarios)
 function formatPct(value, multiply = false) {
   const num = toNum(value);
   if (isNaN(num)) return "N/D";
   const pct = multiply ? num * 100 : num;
-  return pct.toFixed(2);
+  // Muestra hasta 2 decimales pero elimina ceros finales
+  return parseFloat(pct.toFixed(2)).toString();
+}
+
+// Formatea número entero con separador de miles colombiano
+function formatInt(value) {
+  const num = toNum(value);
+  if (isNaN(num)) return "N/D";
+  return Math.round(num).toLocaleString('es-CO');
 }
 
 /* =========================
@@ -115,11 +120,11 @@ app.get('/', (req, res) => {
 app.post('/chat', (req, res) => {
   const { message, project } = req.body;
 
-  let reply = "No tengo información suficiente para responder esa pregunta. Puedes preguntarme por avance, hincas, trackers, módulos, facturación o mano de obra.";
+  let reply = "Hmm, no encontré información específica para esa pregunta 🤔 Puedes preguntarme por avance, hincas, trackers, módulos, facturación, mano de obra, generación, dossier o rendimientos de tendido.";
 
   // ---------- PROYECTOS SIN DATOS ----------
   if (project === "solar_sur" || project === "eolico_este" || project === "pv_melgar") {
-    return res.json({ reply: "Este proyecto aún no tiene información disponible en el copiloto. Pronto estará activo." });
+    return res.json({ reply: "Este proyecto aún no tiene datos cargados en el copiloto. ¡Pronto estará disponible! 🚀 Mientras tanto, puedes consultar el proyecto PFV Puerta de Oro." });
   }
 
   // ---------- PROYECTO REAL: PFV Puerta de Oro ----------
@@ -130,43 +135,51 @@ app.post('/chat', (req, res) => {
       r = getResumenData();
     } catch (e) {
       console.error("Error leyendo Excel:", e.message);
-      return res.json({ reply: "Error al leer los datos del proyecto. Verifica que el archivo Excel esté disponible." });
+      return res.json({ reply: "Tuve un problema al leer los datos del proyecto 😕 Por favor verifica que el archivo Resumen.xlsx esté disponible en el servidor." });
     }
 
     const msg = message.toLowerCase();
 
     // --- AVANCE GENERAL ---
     if (msg.includes("avance")) {
-      const real   = formatPct(r["Avance Real"], false);  // Ya está en %
-      const plan   = formatPct(r["Avance Plan"], false);  // Ya está en %
+      const real   = formatPct(r["Avance Real"], false);
+      const plan   = formatPct(r["Avance Plan"], false);
       const spi    = toNum(r["SPI"]);
-      const spiStr = isNaN(spi) ? "N/D" : spi.toFixed(3);
-      const estado = !isNaN(spi) && spi >= 1 ? "adelantado respecto al plan 🟢" : "por detrás del plan 🔴";
-      reply = `📊 Avance real: ${real}% | Plan: ${plan}%\nSPI: ${spiStr} → ${estado}`;
+      const spiStr = isNaN(spi) ? "N/D" : parseFloat(spi.toFixed(3)).toString();
+      const estado = !isNaN(spi) && spi >= 1
+        ? "el proyecto va adelantado respecto al plan ✅"
+        : "el proyecto está por detrás del plan ⚠️, hay que revisar el cronograma";
+      reply = `📊 Aquí el estado de avance:\n• Avance real: ${real}%\n• Avance planificado: ${plan}%\n• SPI: ${spiStr} → ${estado}`;
     }
 
     // --- HINCAS ---
     else if (msg.includes("hinca")) {
       const inst  = toNum(r["Hincas_Instaladas"]);
       const total = toNum(r["Hincas_Totales"]);
-      const pct   = (!isNaN(inst) && !isNaN(total)) ? (inst / total * 100).toFixed(2) : "N/D";
-      reply = `🔩 Hincas: ${inst.toLocaleString('es-CO')} instaladas de ${total.toLocaleString('es-CO')} (${pct}%)`;
+      const pct   = (!isNaN(inst) && !isNaN(total) && total > 0)
+        ? parseFloat((inst / total * 100).toFixed(2)).toString()
+        : "N/D";
+      reply = `🔩 Estado de hincas:\n• Instaladas: ${formatInt(inst)} de ${formatInt(total)}\n• Progreso: ${pct}%`;
     }
 
     // --- TRACKERS ---
     else if (msg.includes("tracker")) {
       const inst  = toNum(r["Trackers_Instalados"]);
       const total = toNum(r["Trackers_Totales"]);
-      const pct   = (!isNaN(inst) && !isNaN(total)) ? (inst / total * 100).toFixed(2) : "N/D";
-      reply = `☀️ Trackers: ${inst.toLocaleString('es-CO')} instalados de ${total.toLocaleString('es-CO')} (${pct}%)`;
+      const pct   = (!isNaN(inst) && !isNaN(total) && total > 0)
+        ? parseFloat((inst / total * 100).toFixed(2)).toString()
+        : "N/D";
+      reply = `☀️ Estado de trackers:\n• Instalados: ${formatInt(inst)} de ${formatInt(total)}\n• Progreso: ${pct}%`;
     }
 
     // --- MÓDULOS ---
     else if (msg.includes("modulo") || msg.includes("módulo") || msg.includes("panel")) {
       const inst  = toNum(r["Modulos_Instalados"]);
       const total = toNum(r["Modulos_Totales"]);
-      const pct   = (!isNaN(inst) && !isNaN(total)) ? (inst / total * 100).toFixed(2) : "N/D";
-      reply = `🔋 Módulos: ${inst.toLocaleString('es-CO')} instalados de ${total.toLocaleString('es-CO')} (${pct}%)`;
+      const pct   = (!isNaN(inst) && !isNaN(total) && total > 0)
+        ? parseFloat((inst / total * 100).toFixed(2)).toString()
+        : "N/D";
+      reply = `🔋 Estado de módulos:\n• Instalados: ${formatInt(inst)} de ${formatInt(total)}\n• Progreso: ${pct}%`;
     }
 
     // --- FACTURACIÓN ---
@@ -174,7 +187,7 @@ app.post('/chat', (req, res) => {
       const actual = formatCOP(r["Facturación Actual"]);
       const plan   = formatCOP(r["Facturación_Plan"]);
       const pct    = formatPct(r["Facturacion_Porcentaje"], false);
-      reply = `💰 Facturación actual: $${actual} COP\n📋 Plan: $${plan} COP\n📈 Avance: ${pct}%`;
+      reply = `💰 Estado de facturación:\n• Facturado a la fecha: $${actual} COP\n• Meta planificada: $${plan} COP\n• Avance: ${pct}%`;
     }
 
     // --- MANO DE OBRA ---
@@ -182,47 +195,49 @@ app.post('/chat', (req, res) => {
       const total     = toNum(r["Mano_de_Obra_Total"]);
       const directa   = toNum(r["Mano_de_Obra_Directa"]);
       const indirecta = toNum(r["Mano_de_Obra_Indirecta"]);
-      reply = `👷 Personal en obra: ${total} personas\n• Directa: ${directa}\n• Indirecta: ${indirecta}`;
+      reply = `👷 Personal en obra:\n• Total: ${formatInt(total)} personas\n• Mano de obra directa: ${formatInt(directa)}\n• Mano de obra indirecta: ${formatInt(indirecta)}`;
     }
 
     // --- GENERACIÓN ---
     else if (msg.includes("generacion") || msg.includes("generación")) {
       const generacion = toNum(r["Generación"]);
       const pct        = toNum(r["Porcentaje de Generación"]);
-      const generacionStr = !isNaN(generacion) ? generacion.toFixed(1) : "N/D";
-      const pctStr        = !isNaN(pct) ? pct.toFixed(2) : "N/D";
-      reply = `⚡ La generación actual del parque es ${generacionStr} MW, lo que representa un ${pctStr}% del total del Parque.`;
+      const generacionStr = !isNaN(generacion) ? parseFloat(generacion.toFixed(2)).toString() : "N/D";
+      const pctStr        = !isNaN(pct) ? parseFloat(pct.toFixed(2)).toString() : "N/D";
+      reply = `⚡ Generación del parque:\n• Generación actual: ${generacionStr} MW\n• Representa el ${pctStr}% del total del parque`;
     }
 
     // --- DOSSIER ---
     else if (msg.includes("dossier")) {
       const avanceDossier = toNum(r["Dossier"]);
-      const pctStr = !isNaN(avanceDossier) ? avanceDossier.toFixed(2) : "N/D";
-      reply = `📂 El avance general del Dossier es de ${pctStr}%. Para mayor detalle revisa el apartado de Gestión de Calidad, botón Dossier.`;
+      const pctStr = !isNaN(avanceDossier) ? parseFloat(avanceDossier.toFixed(2)).toString() : "N/D";
+      reply = `📂 Avance del Dossier: ${pctStr}%\n\nPara mayor detalle, revisa el apartado de Gestión de Calidad → botón Dossier en el dashboard 👆`;
     }
 
     // --- NO CONFORMIDADES ---
     else if (msg.includes("conformidad") || msg.includes("no conformidad")) {
       const noConformidades = r["Balance de No Conformidades"];
-      reply = noConformidades ? `⚠️ ${noConformidades}` : "No se encontró información sobre No Conformidades.";
+      reply = noConformidades
+        ? `⚠️ Balance de No Conformidades:\n${noConformidades}`
+        : "No encontré información sobre No Conformidades en este momento. Verifica en el dashboard de calidad.";
     }
 
     // --- RESUMEN GENERAL ---
     else if (msg.includes("resumen") || msg.includes("estado") || msg.includes("general")) {
-      const real   = formatPct(r["Avance Real"], false);  // Ya está en %
-      const plan   = formatPct(r["Avance Plan"], false);  // Ya está en %
+      const real   = formatPct(r["Avance Real"], false);
+      const plan   = formatPct(r["Avance Plan"], false);
       const spi    = toNum(r["SPI"]);
-      const spiStr = isNaN(spi) ? "N/D" : spi.toFixed(3);
+      const spiStr = isNaN(spi) ? "N/D" : parseFloat(spi.toFixed(3)).toString();
       const total  = toNum(r["Mano_de_Obra_Total"]);
       const actual = formatCOP(r["Facturación Actual"]);
-      reply = `📋 Resumen PFV Puerta de Oro:\n• Avance real: ${real}% (Plan: ${plan}%)\n• SPI: ${spiStr}\n• Personal: ${total} personas\n• Facturación: $${actual} COP`;
+      reply = `📋 Resumen PFV Puerta de Oro:\n• Avance real: ${real}% (Plan: ${plan}%)\n• SPI: ${spiStr}\n• Personal en obra: ${formatInt(total)} personas\n• Facturación: $${actual} COP\n\n¿Quieres profundizar en algún tema? 😊`;
     }
 
     // --- RENDIMIENTOS TENDIDO CABLE SOLAR ---
     else if (msg.includes("rendimiento") || msg.includes("tendido") || msg.includes("cable")) {
       const rendimiento = toNum(r["Rendimientos Tendido cable solar"]);
-      const rendStr = isNaN(rendimiento) ? "N/D" : rendimiento.toFixed(0);
-      reply = `📏 Los rendimientos presentados de la última semana que muestra ejecución para tendido de cable solar son de ${rendStr} metros en la semana.\n\n📌 Para mayor detalle consúltalo en el apartado de Gestión de Construcción → Plan de Acción/Bonus → Tendido Solar`;
+      const rendStr = isNaN(rendimiento) ? "N/D" : formatInt(rendimiento);
+      reply = `📏 Rendimiento de tendido cable solar:\n• Última semana registrada: ${rendStr} metros\n\n📌 Para detalle completo: Gestión de Construcción → Plan de Acción/Bonus → Tendido Solar`;
     }
 
   }
@@ -236,5 +251,4 @@ app.post('/chat', (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
   console.log(`Para recargar datos del Excel visita: http://localhost:3000/reload`);
-
 });
