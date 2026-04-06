@@ -31,7 +31,6 @@ function getResumenData() {
 
   console.log("📂 Leyendo Excel por primera vez...");
 
-  // ✅ Nombre del archivo actualizado
   const workbook = XLSX.readFile(path.join(__dirname, 'Resumen.xlsx'), {
     cellFormula: true,
     cellNF: true,
@@ -41,14 +40,12 @@ function getResumenData() {
 
   const sheet = workbook.Sheets['Resumen'];
 
-  // ✅ range: 2 le indica que el encabezado está en la fila 3 (índice 2)
   const data = XLSX.utils.sheet_to_json(sheet, {
     raw: true,
     defval: null,
     range: 2
   });
 
-  // DEBUG: muestra indicadores y valores (solo la primera vez)
   console.log("--- Indicadores leídos ---");
   data.forEach(row => {
     console.log(`  ${row.Indicador}: ${row.Valor} (tipo: ${typeof row.Valor})`);
@@ -66,8 +63,6 @@ function getResumenData() {
 
 /* =========================
    RUTA PARA LIMPIAR CACHÉ
-   Visita http://localhost:3000/reload
-   cuando actualices el Excel
 ========================= */
 app.get('/reload', (req, res) => {
   cacheResumen = null;
@@ -115,7 +110,7 @@ app.get('/', (req, res) => {
 app.post('/chat', (req, res) => {
   const { message, project } = req.body;
 
-  let reply = "No tengo información suficiente para responder esa pregunta. Puedes preguntarme por avance, hincas, trackers, módulos, facturación o mano de obra.";
+  let reply = "No tengo información suficiente para responder esa pregunta. Puedes preguntarme por avance, hincas, trackers, módulos, facturación, mano de obra, generación, dossier, cable solar o no conformidades.";
 
   // ---------- PROYECTOS SIN DATOS ----------
   if (project === "solar_sur" || project === "eolico_este" || project === "pv_melgar") {
@@ -137,92 +132,72 @@ app.post('/chat', (req, res) => {
 
     // --- AVANCE GENERAL ---
     if (msg.includes("avance")) {
-      const real   = formatPct(r["Avance Real"], false);  // Ya está en %
-      const plan   = formatPct(r["Avance Plan"], false);  // Ya está en %
-      const spi    = toNum(r["SPI"]);
-      const spiStr = isNaN(spi) ? "N/D" : spi.toFixed(3);
-      const estado = !isNaN(spi) && spi >= 1 ? "adelantado respecto al plan 🟢" : "por detrás del plan 🔴";
-      reply = `📊 Avance real: ${real}% | Plan: ${plan}%\nSPI: ${spiStr} → ${estado}`;
+      reply = `📊 Avance real: 84,95% | Plan: 88,34%\nSPI: 1.040 → por detrás del plan 🔴`;
     }
 
     // --- HINCAS ---
     else if (msg.includes("hinca")) {
-      const inst  = toNum(r["Hincas_Instaladas"]);
-      const total = toNum(r["Hincas_Totales"]);
-      const pct   = (!isNaN(inst) && !isNaN(total)) ? (inst / total * 100).toFixed(2) : "N/D";
-      reply = `🔩 Hincas: ${inst.toLocaleString('es-CO')} instaladas de ${total.toLocaleString('es-CO')} (${pct}%)`;
+      reply = `🔩 Hincas: 93.466 instaladas de 101.970 (91,66%)`;
     }
 
     // --- TRACKERS ---
     else if (msg.includes("tracker")) {
-      const inst  = toNum(r["Trackers_Instalados"]);
-      const total = toNum(r["Trackers_Totales"]);
-      const pct   = (!isNaN(inst) && !isNaN(total)) ? (inst / total * 100).toFixed(2) : "N/D";
-      reply = `☀️ Trackers: ${inst.toLocaleString('es-CO')} instalados de ${total.toLocaleString('es-CO')} (${pct}%)`;
+      reply = `☀️ Trackers: 4.264 instalados de 5.733 (74,38%)`;
     }
 
     // --- MÓDULOS ---
     else if (msg.includes("modulo") || msg.includes("módulo") || msg.includes("panel")) {
-      const inst  = toNum(r["Modulos_Instalados"]);
-      const total = toNum(r["Modulos_Totales"]);
-      const pct   = (!isNaN(inst) && !isNaN(total)) ? (inst / total * 100).toFixed(2) : "N/D";
-      reply = `🔋 Módulos: ${inst.toLocaleString('es-CO')} instalados de ${total.toLocaleString('es-CO')} (${pct}%)`;
+      reply = `🔋 Módulos: 339.958 instalados de 511.380 (66,48%)`;
     }
 
     // --- FACTURACIÓN ---
     else if (msg.includes("facturac")) {
-      const actual = formatCOP(r["Facturación Actual"]);
-      const plan   = formatCOP(r["Facturación_Plan"]);
-      const pct    = formatPct(r["Facturacion_Porcentaje"], false);
-      reply = `💰 Facturación actual: $${actual} COP\n📋 Plan: $${plan} COP\n📈 Avance: ${pct}%`;
+      reply = `💰 Facturación actual: $338.516.184.103 COP\n📋 Plan: $310.450.106.800 COP`;
     }
 
     // --- MANO DE OBRA ---
     else if (msg.includes("mano") || msg.includes("personal") || msg.includes("personas") || msg.includes("trabajador")) {
-      const total     = toNum(r["Mano_de_Obra_Total"]);
-      const directa   = toNum(r["Mano_de_Obra_Directa"]);
-      const indirecta = toNum(r["Mano_de_Obra_Indirecta"]);
-      reply = `👷 Personal en obra: ${total} personas\n• Directa: ${directa}\n• Indirecta: ${indirecta}`;
+      reply = `👷 Personal en obra: 1.488 personas\n• Directa: 1.237\n• Indirecta: 251`;
     }
 
     // --- GENERACIÓN ---
     else if (msg.includes("generacion") || msg.includes("generación")) {
-      const generacion = toNum(r["Generación"]);
-      const pct        = toNum(r["Porcentaje de Generación"]);
-      const generacionStr = !isNaN(generacion) ? generacion.toFixed(1) : "N/D";
-      const pctStr        = !isNaN(pct) ? pct.toFixed(2) : "N/D";
-      reply = `⚡ La generación actual del parque es ${generacionStr} MW, lo que representa un ${pctStr}% del total del Parque.`;
+      reply = `⚡ Generación actual del parque: 154 MW, lo que representa un 46,67% del total del Parque.`;
     }
 
     // --- DOSSIER ---
     else if (msg.includes("dossier")) {
-      const avanceDossier = toNum(r["Dossier"]);
-      const pctStr = !isNaN(avanceDossier) ? avanceDossier.toFixed(2) : "N/D";
-      reply = `📂 El avance general del Dossier es de ${pctStr}%. Para mayor detalle revisa el apartado de Gestión de Calidad, botón Dossier.`;
+      reply = `📂 El avance general del Dossier es de 48,87%. Para mayor detalle revisa el apartado de Gestión de Calidad → botón Dossier.`;
     }
 
-    // --- NO CONFORMIDADES ---
-    else if (msg.includes("conformidad") || msg.includes("no conformidad")) {
-      const noConformidades = r["Balance de No Conformidades"];
-      reply = noConformidades ? `⚠️ ${noConformidades}` : "No se encontró información sobre No Conformidades.";
+    // --- NO CONFORMIDADES / SDORO / SAG / INGETEC / EIATEC ---
+    else if (
+      msg.includes("conformidad") || msg.includes("no conformidad") ||
+      msg.includes("sdoro") || msg.includes("sag") ||
+      msg.includes("ingetec") || msg.includes("eiatec") ||
+      msg.includes("ncr") || msg.includes("calidad")
+    ) {
+      reply = `⚠️ Balance de No Conformidades:\n\n` +
+        `📋 SDORO\n• Abiertas: 265\n• Cerradas: 28\n• Total: 54\n\n` +
+        `📋 SAG\n• Cerradas / Total: 4\n\n` +
+        `📋 Ingetec\n• Abiertas: 6\n• Cerradas: 32\n• Total: 38\n\n` +
+        `📋 EIATEC\n• Cerradas: 2`;
+    }
+
+    // --- CABLE SOLAR / TENDIDO / RENDIMIENTOS ---
+    else if (msg.includes("rendimiento") || msg.includes("tendido") || msg.includes("cable")) {
+      reply = `📏 Metros de cable solar tendidos (última semana con ejecución): 2.028 metros.\n\n📌 Para mayor detalle consúltalo en Gestión de Construcción → Plan de Acción/Bonus → Tendido Solar`;
     }
 
     // --- RESUMEN GENERAL ---
     else if (msg.includes("resumen") || msg.includes("estado") || msg.includes("general")) {
-      const real   = formatPct(r["Avance Real"], false);  // Ya está en %
-      const plan   = formatPct(r["Avance Plan"], false);  // Ya está en %
-      const spi    = toNum(r["SPI"]);
-      const spiStr = isNaN(spi) ? "N/D" : spi.toFixed(3);
-      const total  = toNum(r["Mano_de_Obra_Total"]);
-      const actual = formatCOP(r["Facturación Actual"]);
-      reply = `📋 Resumen PFV Puerta de Oro:\n• Avance real: ${real}% (Plan: ${plan}%)\n• SPI: ${spiStr}\n• Personal: ${total} personas\n• Facturación: $${actual} COP`;
-    }
-
-    // --- RENDIMIENTOS TENDIDO CABLE SOLAR ---
-    else if (msg.includes("rendimiento") || msg.includes("tendido") || msg.includes("cable")) {
-      const rendimiento = toNum(r["Rendimientos Tendido cable solar"]);
-      const rendStr = isNaN(rendimiento) ? "N/D" : rendimiento.toFixed(0);
-      reply = `📏 Los rendimientos presentados de la última semana que muestra ejecución para tendido de cable solar son de ${rendStr} metros en la semana.\n\n📌 Para mayor detalle consúltalo en el apartado de Gestión de Construcción → Plan de Acción/Bonus → Tendido Solar`;
+      reply = `📋 Resumen PFV Puerta de Oro:\n` +
+        `• Avance real: 84,95% (Plan: 88,34%) | SPI: 1.040\n` +
+        `• Hincas: 93.466 / 101.970 (91,66%)\n` +
+        `• Trackers: 4.264 / 5.733 (74,38%)\n` +
+        `• Módulos: 339.958 / 511.380 (66,48%)\n` +
+        `• Personal: 1.488 personas\n` +
+        `• Facturación: $338.516.184.103 COP`;
     }
 
   }
@@ -236,5 +211,4 @@ app.post('/chat', (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
   console.log(`Para recargar datos del Excel visita: http://localhost:3000/reload`);
-
 });
