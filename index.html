@@ -136,6 +136,7 @@
       border-radius: 6px;
       color: #466193;
       display: inline-block;
+      white-space: pre-line;
     }
 
     .thinking {
@@ -155,7 +156,6 @@
       80%, 100% { content: '...'; }
     }
 
-    /* ── Sugerencias de preguntas ── */
     .suggestions {
       display: flex;
       flex-wrap: wrap;
@@ -178,6 +178,16 @@
 
     .suggestion-chip:hover {
       background: #d4e8d0;
+    }
+
+    .suggestion-chip.calidad {
+      background: #fff4e5;
+      border-color: #e0a040;
+      color: #7a4f00;
+    }
+
+    .suggestion-chip.calidad:hover {
+      background: #ffe0b0;
     }
 
     .input-area {
@@ -234,7 +244,6 @@
 
 <div class="main-layout">
 
-  <!-- DASHBOARD -->
   <div class="dashboard-big">
     <iframe
       id="dashboardFrame"
@@ -243,7 +252,6 @@
     </iframe>
   </div>
 
-  <!-- CHAT LATERAL -->
   <div class="chat-side">
 
     <div class="chat-logo">
@@ -254,7 +262,6 @@
       <div class="msg bot">👋 ¡Hola! Soy tu copiloto de proyectos de Revergy. Puedo ayudarte con información sobre el proyecto seleccionado. ¿Qué te gustaría saber?</div>
     </div>
 
-    <!-- Sugerencias de preguntas -->
     <div class="suggestions" id="suggestions">
       <button class="suggestion-chip" onclick="useSuggestion('¿Cuál es el avance del proyecto?')">📊 Avance</button>
       <button class="suggestion-chip" onclick="useSuggestion('¿Cómo van las hincas?')">🔩 Hincas</button>
@@ -262,8 +269,14 @@
       <button class="suggestion-chip" onclick="useSuggestion('¿Cuántos módulos se han instalado?')">🔋 Módulos</button>
       <button class="suggestion-chip" onclick="useSuggestion('¿Cómo va la facturación?')">💰 Facturación</button>
       <button class="suggestion-chip" onclick="useSuggestion('¿Cuántas personas hay en obra?')">👷 Personal</button>
-      <button class="suggestion-chip" onclick="useSuggestion('Dame un resumen general del proyecto')">📋 Resumen</button>
+      <button class="suggestion-chip" onclick="useSuggestion('¿Cuánto está generando el parque?')">⚡ Generación</button>
+      <button class="suggestion-chip" onclick="useSuggestion('¿Cuántos metros de cable solar se han tendido?')">📏 Cable Solar</button>
       <button class="suggestion-chip" onclick="useSuggestion('¿Cómo va el dossier?')">📂 Dossier</button>
+      <button class="suggestion-chip" onclick="useSuggestion('Dame un resumen general del proyecto')">📋 Resumen</button>
+      <button class="suggestion-chip calidad" onclick="useSuggestion('¿Cuál es el balance de no conformidades?')">⚠️ No Conformidades</button>
+      <button class="suggestion-chip calidad" onclick="useSuggestion('¿Cómo van las SDORO?')">📌 SDORO</button>
+      <button class="suggestion-chip calidad" onclick="useSuggestion('¿Cómo van las no conformidades de Ingetec?')">🔎 Ingetec</button>
+      <button class="suggestion-chip calidad" onclick="useSuggestion('¿Cuántas no conformidades tiene EIATEC?')">🏗️ EIATEC</button>
     </div>
 
     <div class="input-area">
@@ -276,20 +289,15 @@
 </div>
 
 <script>
-  // ========== VERIFICACIÓN DE SESIÓN ==========
   let userSession = null;
-
-  // ── URL del backend en Render ──
   const BACKEND_URL = 'https://revergy-backend.onrender.com';
 
   window.onload = function() {
     const sessionData = localStorage.getItem('revergySession');
-    
     if (!sessionData) {
       window.location.href = 'Login.html';
       return;
     }
-    
     userSession = JSON.parse(sessionData);
     document.getElementById('userNameDisplay').textContent = `Bienvenido, ${userSession.name}`;
     applyRoleRestrictions();
@@ -302,7 +310,6 @@
 
   function applyRoleRestrictions() {
     const projectSelect = document.getElementById('projectSelect');
-
     const etiquetas = {
       puerta_de_oro: 'PFV Puerta de Oro',
       pfv_venados:   'PFV Venados',
@@ -310,15 +317,12 @@
       solar_sur:     'Proyecto Solar Sur (DEMO)',
       eolico_este:   'Proyecto Eólico Este (DEMO)'
     };
-
     if (userSession.role === 'admin') return;
-
     const proyectos = userSession.proyectos || ['puerta_de_oro'];
     projectSelect.innerHTML = proyectos
       .map(p => `<option value="${p}">${etiquetas[p] || p}</option>`)
       .join('');
     projectSelect.disabled = false;
-
     cargarDashboard(proyectos[0]);
   }
 
@@ -334,13 +338,11 @@
     iframe.src = urls[project] || urls['puerta_de_oro'];
   }
 
-  // ========== SUGERENCIAS ==========
   function useSuggestion(text) {
     document.getElementById('question').value = text;
     sendQuestion();
   }
 
-  // ========== FUNCIONES DEL CHAT ==========
   document.getElementById('question').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') sendQuestion();
   });
@@ -362,7 +364,6 @@
     messages.scrollTop = messages.scrollHeight;
 
     try {
-      // ── Llamada al backend en Render ──
       const response = await fetch(`${BACKEND_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
