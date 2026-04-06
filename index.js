@@ -178,7 +178,7 @@ app.post('/chat', (req, res) => {
       msg.includes("ncr") || msg.includes("calidad")
     ) {
       reply = `⚠️ Balance de No Conformidades:\n\n` +
-        `📋 SDORO\n• Abiertas: 265\n• Cerradas: 28\n• Total: 54\n\n` +
+        `📋 SDORO\n• Abiertas: 28\n• Cerradas: 26\n• Total: 54\n\n` +
         `📋 SAG\n• Cerradas / Total: 4\n\n` +
         `📋 Ingetec\n• Abiertas: 6\n• Cerradas: 32\n• Total: 38\n\n` +
         `📋 EIATEC\n• Cerradas: 2`;
