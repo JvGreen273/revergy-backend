@@ -236,9 +236,10 @@
   <select id="projectSelect">
     <option value="puerta_de_oro">PFV Puerta de Oro</option>
     <option value="pfv_venados">PFV Venados</option>
-    <option value="pv_melgar">PV Melgar (DEMO)</option>
+    <option value="pv_melgar">PFV Melgar </option>
     <option value="solar_sur">Proyecto Solar Sur (DEMO)</option>
     <option value="eolico_este">Proyecto Eólico Este (DEMO)</option>
+    <option value="ebitda_2026">EBITDA-2026</option>
   </select>
 </div>
 
@@ -313,9 +314,10 @@
     const etiquetas = {
       puerta_de_oro: 'PFV Puerta de Oro',
       pfv_venados:   'PFV Venados',
-      pv_melgar:     'PFV Melgar',
+      pv_melgar:     'PFV Melgar (DEMO)',
       solar_sur:     'Proyecto Solar Sur (DEMO)',
-      eolico_este:   'Proyecto Eólico Este (DEMO)'
+      eolico_este:   'Proyecto Eólico Este (DEMO)',
+      ebitda_2026:   'EBITDA-2026'
     };
     if (userSession.role === 'admin') return;
     const proyectos = userSession.proyectos || ['puerta_de_oro'];
@@ -333,7 +335,8 @@
       pfv_venados:   "https://app.powerbi.com/view?r=eyJrIjoiZDlhMjU0ZDgtOGY4Ny00OTc0LWJlZjEtZDQ5Mjg5NWZmNzhhIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
       pv_melgar:     "https://app.powerbi.com/view?r=eyJrIjoiMGRjNjFmYWItNTNiMS00MDI1LThjMmItN2U4NzBlZjNkNjhiIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
       solar_sur:     "data:text/html,<h2 style='text-align:center;margin-top:150px;font-family:Heebo;'>Proyecto Solar Sur (DEMO)<br>Dashboard en construcción</h2>",
-      eolico_este:   "data:text/html,<h2 style='text-align:center;margin-top:150px;font-family:Heebo;'>Proyecto Eólico Este (DEMO)<br>Dashboard en construcción</h2>"
+      eolico_este:   "data:text/html,<h2 style='text-align:center;margin-top:150px;font-family:Heebo;'>Proyecto Eólico Este (DEMO)<br>Dashboard en construcción</h2>",
+      ebitda_2026:   "https://app.powerbi.com/view?r=eyJrIjoiMjhmMTExNzYtMTZkOS00ZDBhLWFhNjMtYmQwZDUwYWIwY2MxIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9"
     };
     iframe.src = urls[project] || urls['puerta_de_oro'];
   }
