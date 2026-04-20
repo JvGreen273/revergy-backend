@@ -149,7 +149,6 @@
     <div id="camposCodigo" style="display:none;flex-direction:column;gap:20px;">
       <input type="text" id="nombre" class="input-field" placeholder="Nombre completo" autocomplete="off"/>
       <select id="rolSelect" class="input-field" onchange="onRolChange()" style="color:#555;">
-        <option value="user_revergy">Cliente Revergy</option>
         <option value="user_enerland">Cliente Enerland</option>
         <option value="user_celsia">Cliente Celsia</option>
         <option value="admin">Gerencia Revergy</option>
@@ -240,7 +239,7 @@
     const rol = document.getElementById('rolSelect').value;
     const codigoWrap = document.getElementById('codigoWrap');
     const codigoInput = document.getElementById('codigoAcceso');
-    // Todos los perfiles excepto Cliente Revergy requieren código
+    // Todos los perfiles requieren código
     if (rol === 'admin') {
       codigoWrap.style.display = 'block';
       codigoInput.placeholder = 'Código de acceso Gerencia';
@@ -251,8 +250,8 @@
       codigoWrap.style.display = 'block';
       codigoInput.placeholder = 'Código de acceso Celsia';
     } else {
-      codigoWrap.style.display = 'none';
-      codigoInput.value = '';
+      codigoWrap.style.display = 'block';
+      codigoInput.placeholder = 'Código de acceso';
     }
   };
 
@@ -329,10 +328,6 @@
       } else if (rol === 'user_celsia') {
         empresa = 'celsia';
         proyectos = ['solar_sur', 'eolico_este'];
-      } else {
-        // user_revergy: acceso a PDO y Venados
-        empresa = 'revergy';
-        proyectos = ['puerta_de_oro', 'pfv_venados'];
       }
 
       try {
