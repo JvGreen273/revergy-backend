@@ -237,8 +237,7 @@
     <option value="puerta_de_oro">PFV Puerta de Oro</option>
     <option value="pfv_venados">PFV Venados</option>
     <option value="pv_melgar">PFV Melgar </option>
-    <option value="solar_sur">Proyecto Solar Sur (DEMO)</option>
-    <option value="eolico_este">Proyecto Eólico Este (DEMO)</option>
+    <option value="sol_inirida_2">Sol de Inirida II</option>
     <option value="ebitda_2026">EBITDA-2026</option>
     <option value="rrhh" id="optionRRHH" style="display:none;">RRHH</option>
   </select>
@@ -313,13 +312,12 @@
   function applyRoleRestrictions() {
     const projectSelect = document.getElementById('projectSelect');
     const etiquetas = {
-      puerta_de_oro: 'PFV Puerta de Oro',
-      pfv_venados:   'PFV Venados',
-      pv_melgar:     'PFV Melgar',
-      solar_sur:     'Proyecto Solar Sur (DEMO)',
-      eolico_este:   'Proyecto Eólico Este (DEMO)',
-      ebitda_2026:   'EBITDA-2026',
-      rrhh:          'RRHH'
+      puerta_de_oro:  'PFV Puerta de Oro',
+      pfv_venados:    'PFV Venados',
+      pv_melgar:      'PFV Melgar',
+      sol_inirida_2:  'Sol de Inirida II',
+      ebitda_2026:    'EBITDA-2026',
+      rrhh:           'RRHH'
     };
 
     if (userSession.role === 'admin') {
@@ -342,8 +340,7 @@
       puerta_de_oro: "https://app.powerbi.com/view?r=eyJrIjoiZGIyNTkxNDEtN2ZhOS00ZWRkLTlmY2EtNjM4ZWY1NTc1MWM2IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
       pfv_venados:   "https://app.powerbi.com/view?r=eyJrIjoiZDlhMjU0ZDgtOGY4Ny00OTc0LWJlZjEtZDQ5Mjg5NWZmNzhhIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
       pv_melgar:     "https://app.powerbi.com/view?r=eyJrIjoiMGRjNjFmYWItNTNiMS00MDI1LThjMmItN2U4NzBlZjNkNjhiIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
-      solar_sur:     "data:text/html,<h2 style='text-align:center;margin-top:150px;font-family:Heebo;'>Proyecto Solar Sur (DEMO)<br>Dashboard en construcción</h2>",
-      eolico_este:   "data:text/html,<h2 style='text-align:center;margin-top:150px;font-family:Heebo;'>Proyecto Eólico Este (DEMO)<br>Dashboard en construcción</h2>",
+      sol_inirida_2: "https://app.powerbi.com/view?r=eyJrIjoiZTE0MGRjNjAtMDdjZS00MjQ5LThiMmMtYTVkMTVhNTI2MjQ0IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
       ebitda_2026:   "https://app.powerbi.com/view?r=eyJrIjoiMjhmMTExNzYtMTZkOS00ZDBhLWFhNjMtYmQwZDUwYWIwY2MxIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
       rrhh:          "https://app.powerbi.com/view?r=eyJrIjoiZDU2MzkwZWMtMzZjOC00MmEwLTgzMzEtYmQ4N2U2ZTc4MjI4IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9"
     };
