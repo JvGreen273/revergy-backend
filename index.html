@@ -238,6 +238,7 @@
     <option value="pfv_venados">PFV Venados</option>
     <option value="pv_melgar">PFV Melgar </option>
     <option value="sol_inirida_2">PFV Sol de Inirida II</option>
+    <option value="pfv_bsl6">PFV BSL6</option>
     <option value="ebitda_2026">EBITDA-2026</option>
     <option value="rrhh" id="optionRRHH" style="display:none;">RRHH</option>
   </select>
@@ -316,12 +317,12 @@
       pfv_venados:    'PFV Venados',
       pv_melgar:      'PFV Melgar',
       sol_inirida_2:  'PFV Sol de Inirida II',
+      pfv_bsl6:       'PFV BSL6',
       ebitda_2026:    'EBITDA-2026',
       rrhh:           'RRHH'
     };
 
     if (userSession.role === 'admin') {
-      // Admin ve todos — mostrar también la opción RRHH
       document.getElementById('optionRRHH').style.display = '';
       return;
     }
@@ -341,6 +342,7 @@
       pfv_venados:   "https://app.powerbi.com/view?r=eyJrIjoiZDlhMjU0ZDgtOGY4Ny00OTc0LWJlZjEtZDQ5Mjg5NWZmNzhhIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
       pv_melgar:     "https://app.powerbi.com/view?r=eyJrIjoiMGRjNjFmYWItNTNiMS00MDI1LThjMmItN2U4NzBlZjNkNjhiIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
       sol_inirida_2: "https://app.powerbi.com/view?r=eyJrIjoiZTE0MGRjNjAtMDdjZS00MjQ5LThiMmMtYTVkMTVhNTI2MjQ0IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
+      pfv_bsl6:      "https://app.powerbi.com/view?r=eyJrIjoiZGUzMDJlOTctMTBkOC00N2JjLWJiYjktMzg0MGJmN2M3MmZhIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
       ebitda_2026:   "https://app.powerbi.com/view?r=eyJrIjoiMjhmMTExNzYtMTZkOS00ZDBhLWFhNjMtYmQwZDUwYWIwY2MxIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
       rrhh:          "https://app.powerbi.com/view?r=eyJrIjoiZDU2MzkwZWMtMzZjOC00MmEwLTgzMzEtYmQ4N2U2ZTc4MjI4IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9"
     };
