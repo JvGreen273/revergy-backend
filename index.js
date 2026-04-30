@@ -1,214 +1,413 @@
-const express = require('express');
-const path = require('path');
-const XLSX = require('xlsx');
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Revergy Smart Projects</title>
 
-const app = express();
-const port = process.env.PORT || 3000;
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&display=swap" rel="stylesheet">
 
-// CORS para GitHub Pages
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  if (req.method === 'OPTIONS') return res.sendStatus(200);
-  next();
-});
+  <style>
+    body {
+      font-family: 'Heebo', sans-serif;
+      background-color: #f5f6f7;
+      margin: 0;
+      padding: 0;
+    }
 
-app.use(express.json());
-app.use(express.static(__dirname));
+    header {
+      background-color: #7fa678;
+      color: white;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 18px;
+      font-weight: 500;
+      gap: 20px;
+    }
 
+    header .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
 
-/* =========================
-   CACHÉ EN MEMORIA
-========================= */
-let cacheResumen = null;
+    header .header-left img {
+      height: 42px;
+    }
 
-function getResumenData() {
-  if (cacheResumen) {
-    console.log("✅ Datos desde caché (sin leer Excel)");
-    return cacheResumen;
+    header .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    header .user-name {
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    header .logout-btn {
+      background-color: #466193;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: 'Heebo', sans-serif;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    header .logout-btn:hover {
+      background-color: #3a5279;
+    }
+
+    .project-selector {
+      text-align: center;
+      padding: 10px;
+      background: #ffffff;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    select {
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+
+    .main-layout {
+      display: flex;
+      height: calc(100vh - 120px);
+    }
+
+    .dashboard-big {
+      flex: 4;
+      padding: 20px;
+    }
+
+    .dashboard-big iframe {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .chat-side {
+      flex: 1;
+      min-width: 350px;
+      background: white;
+      border-left: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      padding-bottom: 30px;
+    }
+
+    .chat-logo {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .chat-logo img {
+      height: 70px;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+
+    .msg {
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .user {
+      font-weight: 500;
+      color: #3c3c3b;
+    }
+
+    .bot {
+      background: #f2f4f7;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #466193;
+      display: inline-block;
+      white-space: pre-line;
+    }
+
+    .thinking {
+      opacity: 0.7;
+      font-style: italic;
+    }
+
+    .dots::after {
+      content: '';
+      animation: dots 1.5s steps(4, end) infinite;
+    }
+
+    @keyframes dots {
+      0%, 20% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .suggestion-chip {
+      background: #eef4ed;
+      border: 1px solid #7fa678;
+      color: #3c6b35;
+      font-family: 'Heebo', sans-serif;
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .suggestion-chip:hover {
+      background: #d4e8d0;
+    }
+
+    .suggestion-chip.calidad {
+      background: #fff4e5;
+      border-color: #e0a040;
+      color: #7a4f00;
+    }
+
+    .suggestion-chip.calidad:hover {
+      background: #ffe0b0;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    button {
+      background-color: #7fa678;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #6b9364;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-left">
+    <img src="7-revergy_horizontal.png" alt="Revergy">
+    <div>Revergy Smart Projects · Copiloto de Proyectos</div>
+  </div>
+  <div class="header-right">
+    <span id="userNameDisplay" class="user-name"></span>
+    <button onclick="logout()" class="logout-btn">Cerrar Sesión</button>
+  </div>
+</header>
+
+<div class="project-selector">
+  <select id="projectSelect">
+    <option value="puerta_de_oro">PFV Puerta de Oro</option>
+    <option value="pfv_venados">PFV Venados</option>
+    <option value="pv_melgar">PFV Melgar </option>
+    <option value="sol_inirida_2">PFV Sol de Inirida II</option>
+    <option value="sdi_ii_construccion">SDI II Construcción</option>
+    <option value="pfv_bsl6">PFV BSL6</option>
+    <option value="ebitda_2026">EBITDA-2026</option>
+    <option value="rrhh" id="optionRRHH" style="display:none;">RRHH</option>
+  </select>
+</div>
+
+<div class="main-layout">
+
+  <div class="dashboard-big">
+    <iframe
+      id="dashboardFrame"
+      src="https://app.powerbi.com/view?r=eyJrIjoiZGIyNTkxNDEtN2ZhOS00ZWRkLTlmY2EtNjM4ZWY1NTc1MWM2IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9"
+      allowfullscreen="true">
+    </iframe>
+  </div>
+
+  <div class="chat-side">
+
+    <div class="chat-logo">
+      <img src="13-revergy_reducida.png" alt="Revergy Copiloto">
+    </div>
+
+    <div id="messages">
+      <div class="msg bot">👋 ¡Hola! Soy tu copiloto de proyectos de Revergy. Puedo ayudarte con información sobre el proyecto seleccionado. ¿Qué te gustaría saber?</div>
+    </div>
+
+    <div class="suggestions" id="suggestions">
+      <button class="suggestion-chip" onclick="useSuggestion('¿Cuál es el avance del proyecto?')">📊 Avance</button>
+      <button class="suggestion-chip" onclick="useSuggestion('¿Cómo van las hincas?')">🔩 Hincas</button>
+      <button class="suggestion-chip" onclick="useSuggestion('¿Cuántos trackers hay instalados?')">☀️ Trackers</button>
+      <button class="suggestion-chip" onclick="useSuggestion('¿Cuántos módulos se han instalado?')">🔋 Módulos</button>
+      <button class="suggestion-chip" onclick="useSuggestion('¿Cómo va la facturación?')">💰 Facturación</button>
+      <button class="suggestion-chip" onclick="useSuggestion('¿Cuántas personas hay en obra?')">👷 Personal</button>
+      <button class="suggestion-chip" onclick="useSuggestion('¿Cuánto está generando el parque?')">⚡ Generación</button>
+      <button class="suggestion-chip" onclick="useSuggestion('¿Cuántos metros de cable solar se han tendido?')">📏 Cable Solar</button>
+      <button class="suggestion-chip" onclick="useSuggestion('¿Cómo va el dossier?')">📂 Dossier</button>
+      <button class="suggestion-chip" onclick="useSuggestion('Dame un resumen general del proyecto')">📋 Resumen</button>
+      <button class="suggestion-chip calidad" onclick="useSuggestion('¿Cuál es el balance de no conformidades?')">⚠️ No Conformidades</button>
+      <button class="suggestion-chip calidad" onclick="useSuggestion('¿Cómo van las SDORO?')">📌 SDORO</button>
+      <button class="suggestion-chip calidad" onclick="useSuggestion('¿Cómo van las no conformidades de Ingetec?')">🔎 Ingetec</button>
+      <button class="suggestion-chip calidad" onclick="useSuggestion('¿Cuántas no conformidades tiene EIATEC?')">🏗️ EIATEC</button>
+    </div>
+
+    <div class="input-area">
+      <input id="question" type="text" placeholder="Pregunta al copiloto..." />
+      <button onclick="sendQuestion()">Enviar</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  let userSession = null;
+  const BACKEND_URL = 'https://revergy-backend.onrender.com';
+
+  window.onload = function() {
+    const sessionData = localStorage.getItem('revergySession');
+    if (!sessionData) {
+      window.location.href = 'Login.html';
+      return;
+    }
+    userSession = JSON.parse(sessionData);
+    document.getElementById('userNameDisplay').textContent = `Bienvenido, ${userSession.name}`;
+    applyRoleRestrictions();
+  };
+
+  function logout() {
+    localStorage.removeItem('revergySession');
+    window.location.href = 'Login.html';
   }
 
-  console.log("📂 Leyendo Excel por primera vez...");
+  function applyRoleRestrictions() {
+    const projectSelect = document.getElementById('projectSelect');
+    const etiquetas = {
+      puerta_de_oro:  'PFV Puerta de Oro',
+      pfv_venados:    'PFV Venados',
+      pv_melgar:      'PFV Melgar',
+      sol_inirida_2:       'PFV Sol de Inirida II',
+      sdi_ii_construccion: 'SDI II Construcción',
+      pfv_bsl6:            'PFV BSL6',
+      ebitda_2026:    'EBITDA-2026',
+      rrhh:           'RRHH'
+    };
 
-  const workbook = XLSX.readFile(path.join(__dirname, 'Resumen.xlsx'), {
-    cellFormula: true,
-    cellNF: true,
-    cellDates: true,
-    sheetStubs: true
-  });
+    if (userSession.role === 'admin') {
+      document.getElementById('optionRRHH').style.display = '';
+      return;
+    }
 
-  const sheet = workbook.Sheets['Resumen'];
-
-  const data = XLSX.utils.sheet_to_json(sheet, {
-    raw: true,
-    defval: null,
-    range: 2
-  });
-
-  console.log("--- Indicadores leídos ---");
-  data.forEach(row => {
-    console.log(`  ${row.Indicador}: ${row.Valor} (tipo: ${typeof row.Valor})`);
-  });
-  console.log("--------------------------");
-
-  const resumen = {};
-  data.forEach(row => {
-    resumen[row.Indicador] = row.Valor;
-  });
-
-  cacheResumen = resumen;
-  return cacheResumen;
-}
-
-/* =========================
-   RUTA PARA LIMPIAR CACHÉ
-========================= */
-app.get('/reload', (req, res) => {
-  cacheResumen = null;
-  console.log("🔄 Caché limpiada. El próximo chat leerá el Excel de nuevo.");
-  res.json({ ok: true, mensaje: "Caché limpiada. Los datos se recargarán en la próxima consulta." });
-});
-
-/* =========================
-   HELPERS DE FORMATO
-========================= */
-function toNum(value) {
-  if (value === null || value === undefined) return NaN;
-  if (typeof value === 'number') return value;
-  const cleaned = String(value)
-    .replace(/\$/g, '')
-    .replace(/\s/g, '')
-    .replace(/\./g, '')
-    .replace(',', '.');
-  return parseFloat(cleaned);
-}
-
-function formatCOP(value) {
-  const num = toNum(value);
-  if (isNaN(num)) return "N/D";
-  return num.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
-
-function formatPct(value, multiply = false) {
-  const num = toNum(value);
-  if (isNaN(num)) return "N/D";
-  const pct = multiply ? num * 100 : num;
-  return pct.toFixed(2);
-}
-
-/* =========================
-   RUTA PRINCIPAL
-========================= */
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-/* =========================
-   CHAT CON CONTEXTO DEL EXCEL
-========================= */
-app.post('/chat', (req, res) => {
-  const { message, project } = req.body;
-
-  let reply = "No tengo información suficiente para responder esa pregunta. Puedes preguntarme por avance, hincas, trackers, módulos, facturación, mano de obra, generación, dossier, cable solar o no conformidades.";
-
-  // ---------- PROYECTOS SIN DATOS ----------
-  if (project === "solar_sur" || project === "eolico_este" || project === "pv_melgar") {
-    return res.json({ reply: "Este proyecto aún no tiene información disponible en el copiloto. Pronto estará activo." });
+    const proyectos = userSession.proyectos || ['puerta_de_oro'];
+    projectSelect.innerHTML = proyectos
+      .map(p => `<option value="${p}">${etiquetas[p] || p}</option>`)
+      .join('');
+    projectSelect.disabled = false;
+    cargarDashboard(proyectos[0]);
   }
 
-  // ---------- PROYECTO REAL: PFV Puerta de Oro ----------
-  if (project === "puerta_de_oro") {
+  function cargarDashboard(project) {
+    const iframe = document.getElementById('dashboardFrame');
+    const urls = {
+      puerta_de_oro: "https://app.powerbi.com/view?r=eyJrIjoiZGIyNTkxNDEtN2ZhOS00ZWRkLTlmY2EtNjM4ZWY1NTc1MWM2IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
+      pfv_venados:   "https://app.powerbi.com/view?r=eyJrIjoiZDlhMjU0ZDgtOGY4Ny00OTc0LWJlZjEtZDQ5Mjg5NWZmNzhhIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
+      pv_melgar:     "https://app.powerbi.com/view?r=eyJrIjoiMGRjNjFmYWItNTNiMS00MDI1LThjMmItN2U4NzBlZjNkNjhiIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
+      sol_inirida_2:       "https://app.powerbi.com/view?r=eyJrIjoiZTE0MGRjNjAtMDdjZS00MjQ5LThiMmMtYTVkMTVhNTI2MjQ0IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
+      sdi_ii_construccion: "https://app.powerbi.com/view?r=eyJrIjoiNDZlYTVlZDctMmNhNC00NTM5LTkwYmEtZTBmN2RhZWY4OGE0IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
+      pfv_bsl6:            "https://app.powerbi.com/view?r=eyJrIjoiZGUzMDJlOTctMTBkOC00N2JjLWJiYjktMzg0MGJmN2M3MmZhIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
+      ebitda_2026:   "https://app.powerbi.com/view?r=eyJrIjoiMjhmMTExNzYtMTZkOS00ZDBhLWFhNjMtYmQwZDUwYWIwY2MxIiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9",
+      rrhh:          "https://app.powerbi.com/view?r=eyJrIjoiZDU2MzkwZWMtMzZjOC00MmEwLTgzMzEtYmQ4N2U2ZTc4MjI4IiwidCI6IjE4MDQ3MGRjLTQ3MzgtNDdhNi1hMDEzLTA4NWJhMGNhZmYxMSIsImMiOjR9"
+    };
+    iframe.src = urls[project] || urls['puerta_de_oro'];
+  }
 
-    let r = {};
+  function useSuggestion(text) {
+    document.getElementById('question').value = text;
+    sendQuestion();
+  }
+
+  document.getElementById('question').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sendQuestion();
+  });
+
+  async function sendQuestion() {
+    const input = document.getElementById('question');
+    const project = document.getElementById('projectSelect').value;
+    const question = input.value.trim();
+    if (!question) return;
+
+    const messages = document.getElementById('messages');
+    messages.innerHTML += `<div class="msg user">👤 ${question}</div>`;
+    input.value = '';
+
+    const thinkingMsg = document.createElement('div');
+    thinkingMsg.className = 'msg bot thinking';
+    thinkingMsg.innerHTML = '🤖 Procesando<span class="dots"></span>';
+    messages.appendChild(thinkingMsg);
+    messages.scrollTop = messages.scrollHeight;
+
     try {
-      r = getResumenData();
-    } catch (e) {
-      console.error("Error leyendo Excel:", e.message);
-      return res.json({ reply: "Error al leer los datos del proyecto. Verifica que el archivo Excel esté disponible." });
+      const response = await fetch(`${BACKEND_URL}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: question, project: project })
+      });
+
+      const data = await response.json();
+
+      const delay = 2000 + Math.random() * 2000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+
+      thinkingMsg.remove();
+      messages.innerHTML += `<div class="msg bot">🤖 ${data.reply}</div>`;
+
+    } catch (err) {
+      thinkingMsg.remove();
+      messages.innerHTML += `<div class="msg bot" style="color:#d32f2f;">⚠️ No se pudo conectar con el copiloto. Intenta de nuevo en un momento.</div>`;
+      console.error('Error al contactar el backend:', err);
     }
 
-    const msg = message.toLowerCase();
-
-    // --- AVANCE GENERAL ---
-    if (msg.includes("avance")) {
-      reply = `📊 Avance real: 84,95% | Plan: 88,34%\nSPI: 1.040 → por detrás del plan 🔴`;
-    }
-
-    // --- HINCAS ---
-    else if (msg.includes("hinca")) {
-      reply = `🔩 Hincas: 93.466 instaladas de 101.970 (91,66%)`;
-    }
-
-    // --- TRACKERS ---
-    else if (msg.includes("tracker")) {
-      reply = `☀️ Trackers: 4.264 instalados de 5.733 (74,38%)`;
-    }
-
-    // --- MÓDULOS ---
-    else if (msg.includes("modulo") || msg.includes("módulo") || msg.includes("panel")) {
-      reply = `🔋 Módulos: 339.958 instalados de 511.380 (66,48%)`;
-    }
-
-    // --- FACTURACIÓN ---
-    else if (msg.includes("facturac")) {
-      reply = `💰 Facturación actual: $338.516.184.103 COP\n📋 Plan: $310.450.106.800 COP`;
-    }
-
-    // --- MANO DE OBRA ---
-    else if (msg.includes("mano") || msg.includes("personal") || msg.includes("personas") || msg.includes("trabajador")) {
-      reply = `👷 Personal en obra: 1.488 personas\n• Directa: 1.237\n• Indirecta: 251`;
-    }
-
-    // --- GENERACIÓN ---
-    else if (msg.includes("generacion") || msg.includes("generación")) {
-      reply = `⚡ Generación actual del parque: 154 MW, lo que representa un 46,67% del total del Parque.`;
-    }
-
-    // --- DOSSIER ---
-    else if (msg.includes("dossier")) {
-      reply = `📂 El avance general del Dossier es de 48,87%. Para mayor detalle revisa el apartado de Gestión de Calidad → botón Dossier.`;
-    }
-
-    // --- NO CONFORMIDADES / SDORO / SAG / INGETEC / EIATEC ---
-    else if (
-      msg.includes("conformidad") || msg.includes("no conformidad") ||
-      msg.includes("sdoro") || msg.includes("sag") ||
-      msg.includes("ingetec") || msg.includes("eiatec") ||
-      msg.includes("ncr") || msg.includes("calidad")
-    ) {
-      reply = `⚠️ Balance de No Conformidades:\n\n` +
-        `📋 SDORO\n• Abiertas: 28\n• Cerradas: 26\n• Total: 54\n\n` +
-        `📋 SAG\n• Cerradas / Total: 4\n\n` +
-        `📋 Ingetec\n• Abiertas: 6\n• Cerradas: 32\n• Total: 38\n\n` +
-        `📋 EIATEC\n• Cerradas: 2`;
-    }
-
-    // --- CABLE SOLAR / TENDIDO / RENDIMIENTOS ---
-    else if (msg.includes("rendimiento") || msg.includes("tendido") || msg.includes("cable")) {
-      reply = `📏 Metros de cable solar tendidos (última semana con ejecución): 2.028 metros.\n\n📌 Para mayor detalle consúltalo en Gestión de Construcción → Plan de Acción/Bonus → Tendido Solar`;
-    }
-
-    // --- RESUMEN GENERAL ---
-    else if (msg.includes("resumen") || msg.includes("estado") || msg.includes("general")) {
-      reply = `📋 Resumen PFV Puerta de Oro:\n` +
-        `• Avance real: 84,95% (Plan: 88,34%) | SPI: 1.040\n` +
-        `• Hincas: 93.466 / 101.970 (91,66%)\n` +
-        `• Trackers: 4.264 / 5.733 (74,38%)\n` +
-        `• Módulos: 339.958 / 511.380 (66,48%)\n` +
-        `• Personal: 1.488 personas\n` +
-        `• Facturación: $338.516.184.103 COP`;
-    }
-
+    messages.scrollTop = messages.scrollHeight;
   }
 
-  res.json({ reply });
-});
+  document.getElementById('projectSelect').addEventListener('change', function() {
+    const project = this.value;
+    const messages = document.getElementById('messages');
+    messages.innerHTML = '<div class="msg bot">👋 ¡Hola! Soy tu copiloto de proyectos de Revergy. Puedo ayudarte con información sobre el proyecto seleccionado. ¿Qué te gustaría saber?</div>';
+    cargarDashboard(project);
+  });
+</script>
 
-/* =========================
-   SERVIDOR
-========================= */
-app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
-  console.log(`Para recargar datos del Excel visita: http://localhost:3000/reload`);
-});
+</body>
+</html>
