@@ -151,6 +151,7 @@
       <select id="rolSelect" class="input-field" onchange="onRolChange()" style="color:#555;">
         <option value="user_enerland">Cliente Enerland</option>
         <option value="user_celsia">Cliente Celsia</option>
+        <option value="user_edf">Cliente EDF</option>
         <option value="admin">Gerencia Revergy</option>
       </select>
       <div id="codigoWrap" style="display:none;">
@@ -239,20 +240,14 @@
     const rol = document.getElementById('rolSelect').value;
     const codigoWrap = document.getElementById('codigoWrap');
     const codigoInput = document.getElementById('codigoAcceso');
-    // Todos los perfiles requieren código
-    if (rol === 'admin') {
-      codigoWrap.style.display = 'block';
-      codigoInput.placeholder = 'Código de acceso Gerencia';
-    } else if (rol === 'user_enerland') {
-      codigoWrap.style.display = 'block';
-      codigoInput.placeholder = 'Código de acceso Enerland';
-    } else if (rol === 'user_celsia') {
-      codigoWrap.style.display = 'block';
-      codigoInput.placeholder = 'Código de acceso Celsia';
-    } else {
-      codigoWrap.style.display = 'block';
-      codigoInput.placeholder = 'Código de acceso';
-    }
+    const placeholders = {
+      admin:       'Código de acceso Gerencia',
+      user_enerland: 'Código de acceso Enerland',
+      user_celsia:   'Código de acceso Celsia',
+      user_edf:      'Código de acceso EDF'
+    };
+    codigoWrap.style.display = 'block';
+    codigoInput.placeholder = placeholders[rol] || 'Código de acceso';
   };
 
   // ─── SUBMIT principal ───
@@ -302,7 +297,8 @@
       const codigos = {
         admin:         'Revergy+',
         user_enerland: 'Enerland2026',
-        user_celsia:   'Celsia2026'
+        user_celsia:   'Celsia2026',
+        user_edf:      'EDF2026'
       };
 
       if (codigos[rol] && codigo !== codigos[rol]) {
@@ -328,6 +324,9 @@
       } else if (rol === 'user_celsia') {
         empresa = 'celsia';
         proyectos = ['solar_sur', 'eolico_este'];
+      } else if (rol === 'user_edf') {
+        empresa = 'edf';
+        proyectos = ['sdi_ii_construccion', 'sol_inirida_2'];
       }
 
       try {
